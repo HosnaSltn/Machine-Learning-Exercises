@@ -55,13 +55,4 @@ Six assignments that pair Python experiments with worked theory solutions in Per
 
 ## About the files
 
-The notebooks include the assignment prompts, implementations, figures, and short analyses. The theory PDFs contain the written solutions. The editable files, template, and original fonts are in [theory-source](theory-source/). Run XeLaTeX with XePersian from that directory. [Font notices](theory-source/FONT-NOTICES.md)
-
-To run a notebook locally, install the [Python dependencies](requirements.txt) and launch JupyterLab from the repository root.
-
-```bash
-python -m pip install -r requirements.txt
-python -m jupyterlab
-```
-
-Exercise 06 fetches Fashion-MNIST from OpenML on its first run. [Dataset](https://www.openml.org/d/40996)
+The notebooks include the assignment prompts, implementations, figures, and short analyses. The theory PDFs contain the written solutions. The editable files, template, and original fonts are in [theory-source](theory-source/).
