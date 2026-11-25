@@ -1,0 +1,264 @@
+% !TeX program = xelatex
+% Adapted from the ML-HW1-T.tex handout and its Template.sty.
+% Place UI Logo.png and the template TTFs beside this file for the original masthead.
+\documentclass{article}
+\usepackage{graphicx,setspace}
+\usepackage{amsmath,amssymb}
+\usepackage[extrafootnotefeatures]{xepersian}
+
+% Legacy bidi definitions may retain this marker on newer LaTeX kernels.
+% For this untagged handout it can be empty if the kernel does not define it.
+\providecommand{\UseMathForPositioningText}{}
+
+\setlength{\textwidth}{6.25in}
+% Center the text block, accounting for TeX's one-inch origin.
+\setlength{\oddsidemargin}{\dimexpr(\paperwidth-\textwidth)/2-1in-\hoffset\relax}
+\setlength{\evensidemargin}{\oddsidemargin}
+\setlength{\topmargin}{-.4in}
+\setlength{\textheight}{8.5in}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{.05in}
+\setlength{\skip\footins}{.25in}
+\linespread{1.5}
+\numberwithin{equation}{section}
+\numberwithin{table}{section}
+
+\IfFileExists{XB Yas.ttf}{%
+    \settextfont[Scale=1.0,BoldFont=*Bd,ItalicFont=*It,BoldItalicFont=*BdIt,Extension=.ttf]{XB Yas}%
+}{%
+    \IfFontExistsTF{XB Yas}{\settextfont{XB Yas}}{%
+    \IfFontExistsTF{Amiri}{\settextfont{Amiri}}{%
+    \IfFontExistsTF{Tahoma}{\settextfont{Tahoma}}{%
+    \IfFontExistsTF{FreeSerif}{\settextfont{FreeSerif}}{\settextfont{DejaVu Sans}}}}}}
+\IfFileExists{IranNastaliq.ttf}{%
+    \defpersianfont\nastaliq{IranNastaliq.ttf}%
+}{%
+    \IfFontExistsTF{IranNastaliq}{\defpersianfont\nastaliq{IranNastaliq}}{\let\nastaliq\relax}%
+}
+
+\newcommand{\universitylogo}{%
+    \IfFileExists{UI Logo.png}{\includegraphics[width=.67\linewidth]{UI Logo.png}}{}%
+}
+
+% Arguments follow the handout command in Template.sty.
+\newcommand{\handout}[5]{%
+    \renewcommand{\thepage}{\arabic{page}}%
+    \noindent\makebox[\textwidth][c]{%
+        \parbox[c]{.17\textwidth}{\raggedleft\universitylogo}%
+        \parbox[c]{.66\textwidth}{%
+            \centering\nastaliq\huge دانشکدۀ ریاضی و آمار دانشگاه اصفهان\par
+        }%
+        \parbox[c]{.17\textwidth}{\raggedright\universitylogo}%
+    }\par
+    \medskip
+    \noindent\framebox[\textwidth]{%
+        \begin{minipage}{.9\textwidth}
+            \onehalfspacing
+            \vspace{.15cm}
+            #5\hfill#2\par
+            {\centering\Large #1\par}
+            \smallskip
+            #3\hfill#4\par
+            \vspace{.15cm}
+        \end{minipage}%
+    }\par
+}
+
+\allowdisplaybreaks[2]
+
+\newenvironment{questionprompt}{%
+    \begin{quote}\noindent\textbf{صورت سؤال.}\enspace\ignorespaces
+}{%
+    \end{quote}\noindent\textbf{پاسخ.}\enspace\ignorespacesafterend
+}
+
+\begin{document}
+\handout
+    {تمرین چهارم نظری: ماشین‌های بردار پشتیبان (\lr{SVM})}
+    {نیم‌سال اول ۱۴۰۴–۱۴۰۵}
+    {مدرس: دکتر محسن علمبردار}
+    {شماره اسلاید: ۶}
+    {یادگیری ماشین}
+
+\vspace{.5cm}
+\textbf{نام دانشجو: حسنا سلطان الکتابی}\par
+
+\section{مکانیسم \lr{SVM} از حاشیهٔ هندسی تا ترفند کرنل}
+
+\noindent\textbf{سوال}
+یک مجموعه‌دادهٔ تک‌بعدی با سه نقطه در نظر بگیرید. ورودی‌ها و برچسب‌های کلاس به صورت زیرند.
+\[
+    \bigl(x^{(1)},y^{(1)}\bigr)=(-2,-1),\qquad
+    \bigl(x^{(2)},y^{(2)}\bigr)=(0,+1),\qquad
+    \bigl(x^{(3)},y^{(3)}\bigr)=(2,-1).
+\]
+
+\subsection*{الف) نگاشت ویژگی و تفکیک‌پذیری خطی}
+\begin{questionprompt}
+    \begin{enumerate}
+        \item توضیح دهید چرا داده‌ها در فضای تک‌بعدی اولیه به صورت خطی تفکیک‌پذیر نیستند.
+        \item برای نگاشت \(\phi\colon\mathbb{R}\to\mathbb{R}^2\) با تعریف \(\phi(x)=[x,\;x^2]^\top\)، مختصات جدید هر سه نقطه را محاسبه کنید.
+        \item با استفاده از مختصات جدید، دستگاه نامعادلات خطی متناظر با قید \lr{SVM} سخت‌حاشیه، یعنی \(y^{(i)}\bigl(w^\top\phi(x^{(i)})+b\bigr)\geq 1\)، را بنویسید.
+    \end{enumerate}
+\end{questionprompt}
+\textbf{۱. تفکیک‌پذیری در فضای اولیه.}
+روی محور اعداد، نقطهٔ مثبت \(x=0\) بین دو نقطهٔ منفی \(x=-2\) و \(x=2\) قرار دارد. یک مرز خطی در یک بُعد فقط یک نقطهٔ آستانه است و دو نیم‌خط می‌سازد. هیچ آستانه‌ای نمی‌تواند هر دو نقطهٔ منفی را در یک طرف و نقطهٔ مثبت را در طرف دیگر قرار دهد.
+
+\begin{center}
+\begin{LTR}
+    \setlength{\unitlength}{1pt}
+    \begin{picture}(216,50)
+        \put(12,24){\line(1,0){89}}
+        \put(107,24){\vector(1,0){94}}
+        \put(48,24){\circle*{5}}
+        \put(104,24){\circle{6}}
+        \put(160,24){\circle*{5}}
+        \put(48,38){\makebox(0,0){\(y=-1\)}}
+        \put(104,38){\makebox(0,0){\(y=+1\)}}
+        \put(160,38){\makebox(0,0){\(y=-1\)}}
+        \put(48,10){\makebox(0,0){\(-2\)}}
+        \put(104,10){\makebox(0,0){\(0\)}}
+        \put(160,10){\makebox(0,0){\(2\)}}
+        \put(210,24){\makebox(0,0){\(x\)}}
+    \end{picture}
+\end{LTR}
+\end{center}
+
+\noindent\textbf{۲. مختصات در فضای ویژگی.}
+مؤلفهٔ اول برابر مقدار اولیه و مؤلفهٔ دوم برابر مربع آن است.
+\begin{align*}
+    \phi(x^{(1)})&=\begin{bmatrix}-2\\(-2)^2\end{bmatrix}
+                    =\begin{bmatrix}-2\\4\end{bmatrix},\\
+    \phi(x^{(2)})&=\begin{bmatrix}0\\0^2\end{bmatrix}
+                    =\begin{bmatrix}0\\0\end{bmatrix},\\
+    \phi(x^{(3)})&=\begin{bmatrix}2\\2^2\end{bmatrix}
+                    =\begin{bmatrix}2\\4\end{bmatrix}.
+\end{align*}
+در فضای جدید، مؤلفهٔ دوم برای نقطهٔ مثبت صفر و برای هر دو نقطهٔ منفی \(4\) است. بنابراین خطی مانند \(\phi_2=2\) دو کلاس را جدا می‌کند.
+
+\noindent\textbf{۳. قیود سخت‌حاشیه.}
+با قرار دادن \(w=[w_1,\;w_2]^\top\) و جای‌گذاری برچسب و مختصات هر نمونه، داریم
+\begin{align*}
+    i=1:\quad -1\left(
+      \begin{bmatrix}w_1&w_2\end{bmatrix}\begin{bmatrix}-2\\4\end{bmatrix}+b
+    \right)\geq 1
+    &\quad\Longleftrightarrow\quad 2w_1-4w_2-b\geq 1,\\
+    i=2:\quad (+1)\left(
+      \begin{bmatrix}w_1&w_2\end{bmatrix}\begin{bmatrix}0\\0\end{bmatrix}+b
+    \right)\geq 1
+    &\quad\Longleftrightarrow\quad b\geq 1,\\
+    i=3:\quad -1\left(
+      \begin{bmatrix}w_1&w_2\end{bmatrix}\begin{bmatrix}2\\4\end{bmatrix}+b
+    \right)\geq 1
+    &\quad\Longleftrightarrow\quad -2w_1-4w_2-b\geq 1.
+\end{align*}
+
+\subsection*{ب) اثبات ریاضی حاشیهٔ هندسی}
+\begin{questionprompt}
+    دو ابرصفحهٔ کانونی \(H_1\colon w^\top x+b=+1\) و \(H_2\colon w^\top x+b=-1\) را در نظر بگیرید. فرض کنید \(x^+\) روی \(H_1\) و \(x^-\) نزدیک‌ترین نقطهٔ \(H_2\) به \(x^+\) باشد، به‌طوری که \(x^+-x^-\) با \(w\) موازی است. با تصویر کردن این بردار روی جهت واحد \(w/\lVert w\rVert\) ثابت کنید فاصلهٔ دو ابرصفحه برابر \(M=2/\lVert w\rVert\) است. توضیح دهید چرا بیشینه‌سازی این فاصله با کمینه‌سازی \(\tfrac12\lVert w\rVert^2\) معادل است.
+\end{questionprompt}
+از معادلات دو ابرصفحه، با کم کردن معادلهٔ دوم از اول، بایاس حذف می‌شود.
+\begin{align*}
+    w^\top x^+ + b &= +1,\\
+    w^\top x^- + b &= -1,\\
+    w^\top(x^+-x^-) &= (+1)-(-1)=2.
+\end{align*}
+
+\begin{center}
+\begin{LTR}
+    \setlength{\unitlength}{1pt}
+    \begin{picture}(288,94)
+        \multiput(16,81)(8,0){20}{\line(1,0){4}}
+        \put(16,46){\line(1,0){156}}
+        \multiput(16,11)(8,0){20}{\line(1,0){4}}
+        \put(181,81){\makebox(0,0)[l]{\(H_1:\ w^\top x+b=+1\)}}
+        \put(181,46){\makebox(0,0)[l]{\(w^\top x+b=0\)}}
+        \put(181,11){\makebox(0,0)[l]{\(H_2:\ w^\top x+b=-1\)}}
+        \put(94,11){\vector(0,1){70}}
+        \put(94,11){\circle*{4}}
+        \put(94,81){\circle*{4}}
+        \put(104,73){\makebox(0,0)[l]{\(x^+\)}}
+        \put(104,19){\makebox(0,0)[l]{\(x^-\)}}
+        \put(83,47){\makebox(0,0)[r]{\(M\)}}
+        \put(33,53){\vector(0,1){15}}
+        \put(40,62){\makebox(0,0)[l]{\(w\)}}
+    \end{picture}
+\end{LTR}
+\end{center}
+
+چون \(x^-\) نزدیک‌ترین نقطه است، پاره‌خط بین دو نقطه بر ابرصفحه‌ها عمود است. از مثبت بودن \(w^\top(x^+-x^-)\) نیز نتیجه می‌شود که \(x^+-x^-\) و \(w\) هم‌جهت‌اند. پس اندازهٔ تصویر روی بردار نرمال واحد، همان فاصلهٔ بین دو ابرصفحه است.
+\begin{align*}
+    M&=\lVert x^+-x^-\rVert\\
+     &=\left(\frac{w}{\lVert w\rVert}\right)^\top(x^+-x^-)
+      =\frac{w^\top(x^+-x^-)}{\lVert w\rVert}
+      =\frac{2}{\lVert w\rVert}.
+\end{align*}
+برای \(\lVert w\rVert>0\)، مقدار \(2/\lVert w\rVert\) با افزایش \(\lVert w\rVert\) کاهش می‌یابد و \(\tfrac12\lVert w\rVert^2\) افزایش می‌یابد. بنابراین در میان جواب‌هایی که قیود سخت‌حاشیه را برآورده می‌کنند، بیشینه‌سازی \(M\) معادل کمینه‌سازی \(\tfrac12\lVert w\rVert^2\) است.
+
+\subsection*{ج) مسئلهٔ دوگان و ماتریس کرنل}
+\begin{questionprompt}
+    در مسئلهٔ دوگان، نقاط داده از طریق ضرب داخلی در فضای ویژگی وارد می‌شوند.
+    \begin{enumerate}
+        \item با استفاده از نقاط نگاشت‌شدهٔ بخش (الف) و تعریف \(K_{ij}=\phi(x^{(i)})^\top\phi(x^{(j)})\)، ماتریس کامل \(3\times3\) کرنل را محاسبه کنید.
+        \item نشان دهید برای هر نگاشت ویژگی \(\phi\)، ماتریس گِرَمِ متناظر نیمه‌معین مثبت است. برای این کار، تعریف \(K_{ij}\) را در فرم درجهٔ دوم \(v^\top K v\) جای‌گذاری کنید و نشان دهید این مقدار برای هر \(v\neq 0\) نامنفی است.
+    \end{enumerate}
+\end{questionprompt}
+\textbf{۱. محاسبهٔ ماتریس کرنل.}
+از تعریف ضرب داخلی در فضای ویژگی داریم
+\[
+    K_{ij}=x^{(i)}x^{(j)}+\bigl(x^{(i)}\bigr)^2\bigl(x^{(j)}\bigr)^2.
+\]
+برای محاسبهٔ هر درایه، بردار ویژگی نمونهٔ سطر را در بردار ویژگی نمونهٔ ستون ضرب داخلی می‌کنیم.
+\begin{align*}
+    K_{11}
+    &=\begin{bmatrix}-2&4\end{bmatrix}\begin{bmatrix}-2\\4\end{bmatrix}
+      =(-2)(-2)+4(4)=20,\\
+    K_{12}
+    &=\begin{bmatrix}-2&4\end{bmatrix}\begin{bmatrix}0\\0\end{bmatrix}
+      =(-2)(0)+4(0)=0,\\
+    K_{13}
+    &=\begin{bmatrix}-2&4\end{bmatrix}\begin{bmatrix}2\\4\end{bmatrix}
+      =(-2)(2)+4(4)=12,\\
+    K_{21}
+    &=\begin{bmatrix}0&0\end{bmatrix}\begin{bmatrix}-2\\4\end{bmatrix}
+      =0(-2)+0(4)=0,\\
+    K_{22}
+    &=\begin{bmatrix}0&0\end{bmatrix}\begin{bmatrix}0\\0\end{bmatrix}
+      =0(0)+0(0)=0,\\
+    K_{23}
+    &=\begin{bmatrix}0&0\end{bmatrix}\begin{bmatrix}2\\4\end{bmatrix}
+      =0(2)+0(4)=0,\\
+    K_{31}
+    &=\begin{bmatrix}2&4\end{bmatrix}\begin{bmatrix}-2\\4\end{bmatrix}
+      =2(-2)+4(4)=12,\\
+    K_{32}
+    &=\begin{bmatrix}2&4\end{bmatrix}\begin{bmatrix}0\\0\end{bmatrix}
+      =2(0)+4(0)=0,\\
+    K_{33}
+    &=\begin{bmatrix}2&4\end{bmatrix}\begin{bmatrix}2\\4\end{bmatrix}
+      =2(2)+4(4)=20.
+\end{align*}
+در نتیجه
+\[
+    K=\begin{bmatrix}
+        20&0&12\\
+        0&0&0\\
+        12&0&20
+    \end{bmatrix}.
+\]
+
+\noindent\textbf{۲. اثبات نیمه‌معین مثبت بودن ماتریس گِرَم.}
+برای \(n\) نمونه و بردار دلخواه \(v=[v_1,\ldots,v_n]^\top\)، ابتدا فرم درجهٔ دوم را باز می‌کنیم. سپس با جای‌گذاری تعریف درایه‌های \(K\)، دو جمع را به صورت یک ضرب داخلی می‌نویسیم.
+\begin{align*}
+    v^\top K v
+    &=\sum_{i=1}^{n}\sum_{j=1}^{n} v_i K_{ij}v_j\\
+    &=\sum_{i=1}^{n}\sum_{j=1}^{n}
+      v_i\,\phi(x^{(i)})^\top\phi(x^{(j)})\,v_j\\
+    &=\left(\sum_{i=1}^{n}v_i\,\phi(x^{(i)})\right)^\top
+      \left(\sum_{j=1}^{n}v_j\,\phi(x^{(j)})\right)\\
+    &=\left\lVert\sum_{i=1}^{n}v_i\,\phi(x^{(i)})\right\rVert^2
+      \geq 0.
+\end{align*}
+ماتریس \(K\) متقارن است، زیرا \(K_{ij}=K_{ji}\). نامنفی بودن فرم درجهٔ دوم برای هر \(v\) نشان می‌دهد که \(K\) نیمه‌معین مثبت است. در مثال حاضر، برای \(v=[0,\;1,\;0]^\top\) که غیرصفر است، مقدار \(v^\top K v\) صفر می‌شود.
+
+\end{document}

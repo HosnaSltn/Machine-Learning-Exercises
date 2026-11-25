@@ -1,0 +1,139 @@
+% !TeX program = xelatex
+% Adapted from the ML-HW1-T.tex handout and its Template.sty.
+% Place UI Logo.png and the template TTFs beside this file for the original masthead.
+\documentclass{article}
+\usepackage{graphicx,setspace}
+\usepackage{amsmath,amssymb}
+\usepackage[extrafootnotefeatures]{xepersian}
+
+% Legacy bidi definitions may retain this marker on newer LaTeX kernels.
+% For this untagged handout it can be empty if the kernel does not define it.
+\providecommand{\UseMathForPositioningText}{}
+
+\setlength{\textwidth}{6.25in}
+% Center the text block, accounting for TeX's one-inch origin.
+\setlength{\oddsidemargin}{\dimexpr(\paperwidth-\textwidth)/2-1in-\hoffset\relax}
+\setlength{\evensidemargin}{\oddsidemargin}
+\setlength{\topmargin}{-.4in}
+\setlength{\textheight}{8.5in}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{.05in}
+\setlength{\skip\footins}{.25in}
+\linespread{1.5}
+\numberwithin{equation}{section}
+\numberwithin{table}{section}
+
+\IfFileExists{XB Yas.ttf}{%
+    \settextfont[Scale=1.0,BoldFont=*Bd,ItalicFont=*It,BoldItalicFont=*BdIt,Extension=.ttf]{XB Yas}%
+}{%
+    \IfFontExistsTF{XB Yas}{\settextfont{XB Yas}}{%
+    \IfFontExistsTF{Amiri}{\settextfont{Amiri}}{%
+    \IfFontExistsTF{Tahoma}{\settextfont{Tahoma}}{%
+    \IfFontExistsTF{FreeSerif}{\settextfont{FreeSerif}}{\settextfont{DejaVu Sans}}}}}}
+\IfFileExists{IranNastaliq.ttf}{%
+    \defpersianfont\nastaliq{IranNastaliq.ttf}%
+}{%
+    \IfFontExistsTF{IranNastaliq}{\defpersianfont\nastaliq{IranNastaliq}}{\let\nastaliq\relax}%
+}
+
+\newcommand{\universitylogo}{%
+    \IfFileExists{UI Logo.png}{\includegraphics[width=.67\linewidth]{UI Logo.png}}{}%
+}
+
+% Arguments follow the handout command in Template.sty.
+\newcommand{\handout}[5]{%
+    \renewcommand{\thepage}{\arabic{page}}%
+    \noindent\makebox[\textwidth][c]{%
+        \parbox[c]{.17\textwidth}{\raggedleft\universitylogo}%
+        \parbox[c]{.66\textwidth}{%
+            \centering\nastaliq\huge دانشکدۀ ریاضی و آمار دانشگاه اصفهان\par
+        }%
+        \parbox[c]{.17\textwidth}{\raggedright\universitylogo}%
+    }\par
+    \medskip
+    \noindent\framebox[\textwidth]{%
+        \begin{minipage}{.9\textwidth}
+            \onehalfspacing
+            \vspace{.15cm}
+            #5\hfill#2\par
+            {\centering\Large #1\par}
+            \smallskip
+            #3\hfill#4\par
+            \vspace{.15cm}
+        \end{minipage}%
+    }\par
+}
+
+\allowdisplaybreaks[2]
+
+\newenvironment{questionprompt}{%
+    \begin{quote}\noindent\textbf{صورت سؤال.}\enspace\ignorespaces
+}{%
+    \end{quote}\noindent\textbf{پاسخ.}\enspace\ignorespacesafterend
+}
+
+\begin{document}
+\handout
+    {تمرین اول نظری: رگرسیون خطی}
+    {نیم‌سال اول ۱۴۰۴–۱۴۰۵}
+    {مدرس: دکتر محسن علمبردار}
+    {شماره اسلاید: ۱ و ۲}
+    {یادگیری ماشین}
+
+\vspace{.5cm}
+\textbf{نام دانشجو: حسنا سلطان الکتابی}\par
+\textbf{شمارهٔ دانشجویی: \lr{---}}\par
+
+\section{مقایسهٔ گرادیان کاهشی و معادلهٔ نرمال در رگرسیون خطی}
+
+\noindent\textbf{سوال}
+در رگرسیون خطی، هدف یافتن بردار پارامترهای \(\theta\) است که تابع هزینهٔ \(J(\theta)\) را کمینه کند. در روش گرادیان کاهشی، پارامترها با نرخ یادگیری \(\alpha\) به‌روزرسانی می‌شوند.
+\[
+    \theta_j:=\theta_j-\alpha\frac{\partial J(\theta)}{\partial\theta_j}.
+\]
+معادلهٔ نرمال برای حالتی که \(X^\top X\) وارون‌پذیر است، جواب مستقیمی برای \(\theta\) می‌دهد.
+\[
+    \theta=(X^\top X)^{-1}X^\top y.
+\]
+
+\subsection*{الف) تفاوت بنیادین در عملکرد}
+\begin{questionprompt}
+    سازوکار اصلی گرادیان کاهشی و معادلهٔ نرمال را شرح دهید. چرا اولی را «تکراری» و دومی را «تحلیلی» می‌نامیم؟
+\end{questionprompt}
+در روش گرادیان کاهشی از یک مقدار اولیه، مثلاً مقداری تصادفی، برای پارامترهای \(\theta\) شروع می‌کنیم. در هر مرحله پارامترها را در خلاف جهت گرادیان تغییر می‌دهیم تا تابع هزینه کاهش یابد. چون این به‌روزرسانی چند بار انجام می‌شود، روش «تکراری» است و باید نرخ یادگیری و تعداد تکرارها یا شرط توقف را تعیین کنیم. این روش برای تعداد زیاد ویژگی‌ها نیز قابل استفاده است.
+
+در روش معادلهٔ نرمال، پارامترها را با حل مستقیم دستگاه \(X^\top X\theta=X^\top y\) به دست می‌آوریم، بنابراین روش «تحلیلی» است. تعیین نرخ یادگیری و تکرار به‌روزرسانی لازم نیست. در فرمول داده‌شده، محاسبهٔ وارون \(X^\top X\) با افزایش تعداد ویژگی‌ها پرهزینه می‌شود.
+\\
+\subsection*{ب) هایپرپارامترها و پیش‌پردازش}
+\begin{questionprompt}
+    نرخ یادگیری \(\alpha\) در هر روش چه نقشی دارد؟ توضیح دهید مقیاس‌بندی ویژگی‌ها برای هر روش چه اهمیتی دارد.
+\end{questionprompt}
+نرخ یادگیری فقط در گرادیان کاهشی به کار می‌رود و اندازهٔ گام به‌روزرسانی را تعیین می‌کند. اگر ویژگی‌ها مقیاس‌های بسیار متفاوتی داشته باشند، همگرایی گرادیان کاهشی ممکن است کند شود. مقیاس‌بندی ویژگی‌ها می‌تواند سرعت و پایداری همگرایی را بهبود دهد.
+
+معادلهٔ نرمال به نرخ یادگیری نیاز ندارد. اختلاف زیاد مقیاس ویژگی‌ها ممکن است باعث بدشرطی عددی \(X^\top X\) شود و محاسبهٔ جواب را حساس‌تر کند. در این حالت مقیاس‌بندی می‌تواند به بهبود پایداری عددی کمک کند.
+
+\subsection*{ج) پیچیدگی محاسباتی}
+\begin{questionprompt}
+    با افزایش تعداد ویژگی‌ها \(n\)، هزینهٔ هر روش چگونه تغییر می‌کند؟ هزینهٔ هر تکرار گرادیان کاهشی و هزینهٔ وارون‌سازی در معادلهٔ نرمال را مقایسه کنید.
+\end{questionprompt}
+اگر \(m\) تعداد نمونه‌های آموزشی، \(n\) تعداد ویژگی‌ها و \(k\) تعداد تکرارها باشد، در گرادیان کاهشی دسته‌ای هر تکرار حدود \(O(mn)\) هزینه دارد. بنابراین هزینهٔ \(k\) تکرار برابر \(O(kmn)\) است.
+
+در روش معادلهٔ نرمال، تشکیل \(X^\top X\) حدود \(O(mn^2)\) و وارون‌سازی آن حدود \(O(n^3)\) هزینه دارد. در نتیجه، هزینهٔ عمدهٔ این روش \(O(mn^2+n^3)\) است. برای \(m\) و \(k\) ثابت، هزینهٔ گرادیان کاهشی نسبت به \(n\) خطی رشد می‌کند و هزینهٔ معادلهٔ نرمال سریع‌تر افزایش می‌یابد.
+
+\subsection*{د) سناریوی کاربردی}
+\begin{questionprompt}
+    با توجه به پیچیدگی محاسباتی توضیح دهید چه زمانی هر روش را ترجیح می‌دهید. پاسخ را با مقایسهٔ \(n=100\) و \(n=100{,}000\) توجیه کنید.
+\end{questionprompt}
+با جای‌گذاری تعداد ویژگی‌ها در مرتبه‌های هزینه، داریم
+\[
+    \begin{array}{c|ccc}
+        n & kmn & mn^2 & n^3\\ \hline
+        100 & 100km & 10^4m & 10^6\\
+        100{,}000 & 10^5km & 10^{10}m & 10^{15}
+    \end{array}
+\]
+ستون \(kmn\) هزینهٔ گرادیان کاهشی و دو ستون آخر به‌ترتیب هزینهٔ تشکیل و وارون‌سازی \(X^\top X\) را تا مرتبهٔ بزرگی نشان می‌دهند.
+
+برای تعداد کمی ویژگی، مانند \(n=100\)، جواب مستقیم معادلهٔ نرمال می‌تواند انتخاب مناسبی باشد، زیرا ماتریس کوچک است و به تکرار به‌روزرسانی روی نمونه‌ها نیاز نیست. برای تعداد بسیار زیاد ویژگی، مانند \(n=100{,}000\)، تشکیل و وارون‌سازی ماتریس پرهزینه می‌شود و گرادیان کاهشی معمولاً انتخاب مناسب‌تری است. \(n\) در حدود \(10{,}000\) یا بیشتر نمونه‌ای از مقیاسی است که در آن باید هزینهٔ روش مستقیم را جدی گرفت. انتخاب نهایی به تعداد نمونه‌ها \(m\) و تعداد تکرارهای لازم \(k\) نیز بستگی دارد.
+
+\end{document}

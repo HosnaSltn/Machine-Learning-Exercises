@@ -1,0 +1,252 @@
+% !TeX program = xelatex
+% Adapted from the ML-HW1-T.tex handout and its Template.sty.
+% Place UI Logo.png and the template TTFs beside this file for the original masthead.
+\documentclass{article}
+\usepackage{graphicx,setspace}
+\usepackage{amsmath,amssymb}
+\usepackage[extrafootnotefeatures]{xepersian}
+
+% Legacy bidi definitions may retain this marker on newer LaTeX kernels.
+% For this untagged handout it can be empty if the kernel does not define it.
+\providecommand{\UseMathForPositioningText}{}
+
+\setlength{\textwidth}{6.25in}
+% Center the text block, accounting for TeX's one-inch origin.
+\setlength{\oddsidemargin}{\dimexpr(\paperwidth-\textwidth)/2-1in-\hoffset\relax}
+\setlength{\evensidemargin}{\oddsidemargin}
+\setlength{\topmargin}{-.4in}
+\setlength{\textheight}{8.5in}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{.05in}
+\setlength{\skip\footins}{.25in}
+\linespread{1.5}
+\numberwithin{equation}{section}
+\numberwithin{table}{section}
+
+\IfFileExists{XB Yas.ttf}{%
+    \settextfont[Scale=1.0,BoldFont=*Bd,ItalicFont=*It,BoldItalicFont=*BdIt,Extension=.ttf]{XB Yas}%
+}{%
+    \IfFontExistsTF{XB Yas}{\settextfont{XB Yas}}{%
+    \IfFontExistsTF{Amiri}{\settextfont{Amiri}}{%
+    \IfFontExistsTF{Tahoma}{\settextfont{Tahoma}}{%
+    \IfFontExistsTF{FreeSerif}{\settextfont{FreeSerif}}{\settextfont{DejaVu Sans}}}}}}
+\IfFileExists{IranNastaliq.ttf}{%
+    \defpersianfont\nastaliq{IranNastaliq.ttf}%
+}{%
+    \IfFontExistsTF{IranNastaliq}{\defpersianfont\nastaliq{IranNastaliq}}{\let\nastaliq\relax}%
+}
+
+\newcommand{\universitylogo}{%
+    \IfFileExists{UI Logo.png}{\includegraphics[width=.67\linewidth]{UI Logo.png}}{}%
+}
+
+% Arguments follow the handout command in Template.sty.
+\newcommand{\handout}[5]{%
+    \renewcommand{\thepage}{\arabic{page}}%
+    \noindent\makebox[\textwidth][c]{%
+        \parbox[c]{.17\textwidth}{\raggedleft\universitylogo}%
+        \parbox[c]{.66\textwidth}{%
+            \centering\nastaliq\huge دانشکدۀ ریاضی و آمار دانشگاه اصفهان\par
+        }%
+        \parbox[c]{.17\textwidth}{\raggedright\universitylogo}%
+    }\par
+    \medskip
+    \noindent\framebox[\textwidth]{%
+        \begin{minipage}{.9\textwidth}
+            \onehalfspacing
+            \vspace{.15cm}
+            #5\hfill#2\par
+            {\centering\Large #1\par}
+            \smallskip
+            #3\hfill#4\par
+            \vspace{.15cm}
+        \end{minipage}%
+    }\par
+}
+
+\allowdisplaybreaks[2]
+
+\newenvironment{questionprompt}{%
+    \begin{quote}\noindent\textbf{صورت سؤال.}\enspace\ignorespaces
+}{%
+    \end{quote}\noindent\textbf{پاسخ.}\enspace\ignorespacesafterend
+}
+
+\begin{document}
+\handout
+    {تمرین ششم: کاهش ابعاد و تشخیص ناهنجاری}
+    {نیم‌سال اول ۱۴۰۴–۱۴۰۵}
+    {مدرس: دکتر محسن علمبردار}
+    {شماره تمرین: ۶}
+    {یادگیری ماشین}
+
+\vspace{.5cm}
+\textbf{نام دانشجو: حسنا سلطان الکتابی}\par
+
+\section{تحلیل مؤلفه‌های اصلی (\lr{PCA}): محاسبات و بازسازی}
+
+\noindent\textbf{سوال}
+داده‌ها دوبعدی و دارای میانگین صفر هستند و ماتریس کوواریانس آن‌ها برابر است با
+\[
+    \Sigma=\begin{bmatrix}5&3\\3&5\end{bmatrix}.
+\]
+
+\subsection*{الف) محاسبهٔ مقادیر و بردارهای ویژه}
+\begin{questionprompt}
+    مقادیر ویژهٔ \(\lambda_1>\lambda_2\) و بردارهای ویژهٔ متناظر با طول واحد، \(u_1\) و \(u_2\)، را به دست آورید.
+\end{questionprompt}
+مقادیر ویژه از معادلهٔ مشخصه به دست می‌آیند.
+\begin{align*}
+    \det(\Sigma-\lambda I) &= 0\\
+    \det\!\begin{bmatrix}5-\lambda&3\\3&5-\lambda\end{bmatrix}
+    &=0\\
+    (5-\lambda)^2-9
+    &=0\\
+    \lambda^2-10\lambda+16
+    &=0\\
+    (\lambda-8)(\lambda-2)
+    &=0.
+\end{align*}
+پس به ترتیب نزولی، \(\lambda_1=8\) و \(\lambda_2=2\) هستند.
+
+\noindent\textbf{بردار ویژهٔ متناظر با \(\lambda_1=8\).}
+اگر \(v=[a,b]^\top\) باشد، معادلهٔ \((\Sigma-8I)v=0\) به صورت زیر است.
+\[
+    \begin{bmatrix}-3&3\\3&-3\end{bmatrix}
+    \begin{bmatrix}a\\b\end{bmatrix}
+    =\begin{bmatrix}0\\0\end{bmatrix}
+    \quad\Longrightarrow\quad a=b.
+\]
+با انتخاب \(a=b=1\) و تقسیم بر طول بردار، داریم
+\[
+    u_1=\frac{1}{\sqrt{1^2+1^2}}\begin{bmatrix}1\\1\end{bmatrix}
+       =\frac{1}{\sqrt{2}}\begin{bmatrix}1\\1\end{bmatrix}.
+\]
+
+\noindent\textbf{بردار ویژهٔ متناظر با \(\lambda_2=2\).}
+به همین ترتیب، معادلهٔ \((\Sigma-2I)v=0\) می‌دهد
+\[
+    \begin{bmatrix}3&3\\3&3\end{bmatrix}
+    \begin{bmatrix}a\\b\end{bmatrix}
+    =\begin{bmatrix}0\\0\end{bmatrix}
+    \quad\Longrightarrow\quad b=-a.
+\]
+با انتخاب \(a=1\) و \(b=-1\) و نرمال‌سازی، داریم
+\[
+    u_2=\frac{1}{\sqrt{1^2+(-1)^2}}\begin{bmatrix}1\\-1\end{bmatrix}
+       =\frac{1}{\sqrt{2}}\begin{bmatrix}1\\-1\end{bmatrix}.
+\]
+
+\subsection*{ب) کاهش ابعاد و واریانس حفظ‌شده}
+\begin{questionprompt}
+    برای کاهش ابعاد از دو به یک \((k=1)\)، مؤلفهٔ مناسب را با دلیل ریاضی انتخاب کنید. سپس درصد واریانس کلِ حفظ‌شده را محاسبه کنید.
+\end{questionprompt}
+از آنجا که \(\lambda_1=8>\lambda_2=2\)، جهت \(u_1\) واریانس بیشتری حفظ می‌کند و مؤلفهٔ اول را انتخاب می‌کنیم. نسبت واریانس حفظ‌شده برابر است با
+\[
+    \frac{\lambda_1}{\lambda_1+\lambda_2}
+    =\frac{8}{8+2}=0.8=80\%.
+\]
+
+\subsection*{ج) تصویر و بازسازی}
+\begin{questionprompt}
+    برای نقطهٔ \(x=[2,4]^\top\)، تصویر اسکالر \(z\) را روی مؤلفهٔ انتخاب‌شده، نقطهٔ بازسازی‌شدهٔ \(\hat{x}_{\mathrm{approx}}\) را در فضای دوبعدی، و خطای \(\lVert x-\hat{x}_{\mathrm{approx}}\rVert^2\) را محاسبه کنید.
+\end{questionprompt}
+با توجه به صفر بودن میانگین داده‌ها، برای محاسبهٔ تصویر مستقیماً از \(x\) استفاده می‌کنیم.
+\begin{align*}
+    z
+    &=u_1^\top x
+      =\frac{1}{\sqrt{2}}\begin{bmatrix}1&1\end{bmatrix}
+        \begin{bmatrix}2\\4\end{bmatrix}
+      =\frac{6}{\sqrt{2}}=3\sqrt{2},\\
+    \hat{x}_{\mathrm{approx}}
+    &=zu_1
+      =\frac{6}{\sqrt{2}}\frac{1}{\sqrt{2}}\begin{bmatrix}1\\1\end{bmatrix}
+      =\begin{bmatrix}3\\3\end{bmatrix}.
+\end{align*}
+خطای بازسازی از مربع طول بردار اختلاف به دست می‌آید.
+\begin{align*}
+    \lVert x-\hat{x}_{\mathrm{approx}}\rVert^2
+    &=\left\lVert
+       \begin{bmatrix}2\\4\end{bmatrix}
+       -\begin{bmatrix}3\\3\end{bmatrix}
+       \right\rVert^2
+      =\left\lVert\begin{bmatrix}-1\\1\end{bmatrix}\right\rVert^2\\
+    &=(-1)^2+1^2=2.
+\end{align*}
+
+\section{تحلیل اثر مقیاس‌دهی در \lr{PCA}}
+
+\begin{questionprompt}
+    ویژگی \(x_1\) طول یک قطعه بر حسب متر در بازهٔ \([0,10]\) و ویژگی \(x_2=100x_1\) طول همان قطعه بر حسب سانتی‌متر در بازهٔ \([0,1000]\) است. در اجرای \lr{PCA} بدون مقیاس‌دهی، مؤلفهٔ اول به کدام محور نزدیک‌تر است و چرا؟
+\end{questionprompt}
+در \lr{PCA} به دنبال جهتی هستیم که داده‌ها بیشترین پراکندگی را در آن داشته باشند. چون \(x_2=100x_1\)، پراکندگی عددی داده‌ها در راستای \(x_2\) بسیار بیشتر از راستای \(x_1\) است. بنابراین، بدون مقیاس‌دهی، مؤلفهٔ اصلی اول تقریباً با محور \(x_2\) (محور سانتی‌متر) هم‌راستاست.
+
+\section{تشخیص ناهنجاری و ارزیابی}
+
+\noindent\textbf{سوال}
+در یک مرکز داده، \(99.8\%\) از ترافیک شبکه عادی \((y=0)\) و \(0.2\%\) حمله \((y=1)\) است.
+
+\subsection*{الف) انتخاب مدل}
+\begin{questionprompt}
+    با توجه به تعداد بسیار کم نمونه‌های مثبت، دو دلیل بیاورید که چرا تشخیص ناهنجاری مبتنی بر توزیع گوسی می‌تواند در این مسئله بر رگرسیون لجستیک ارجح باشد.
+\end{questionprompt}
+\begin{enumerate}
+    \item \textbf{نمونه‌های مثبت برای آموزش محدودند.}
+    رگرسیون لجستیک برای یادگیری مرز تصمیم به نمونه‌های برچسب‌دار از هر دو کلاس وابسته است. نمونه‌های حملهٔ کم ممکن است برای یادگیری یک مرز قابل اتکا کافی نباشند. مدل گوسی را می‌توان عمدتاً با نمونه‌های عادی آموزش داد و نمونه‌های برچسب‌دار حمله را برای تنظیم آستانه و ارزیابی به کار برد.
+    \item \textbf{حمله‌های سایبری الگوهای متفاوتی دارند.}
+    رگرسیون لجستیک مرز تصمیم را از نمونه‌های آموزشی یاد می‌گیرد و ممکن است حمله‌ای با الگوی تازه را تشخیص ندهد. روش تشخیص ناهنجاری گوسی بر داده‌های کلاس منفی، یعنی ترافیک عادی، تمرکز می‌کند. این روش هر نمونه‌ای را که چگالی آن در مدل ترافیک عادی کمتر از آستانه باشد، ناهنجار در نظر می‌گیرد. بنابراین برای علامت‌گذاری چنین نمونه‌ای لازم نیست همان نوع حمله در داده‌های آموزشی دیده شده باشد.
+\end{enumerate}
+
+\subsection*{ب) تعیین آستانه و محاسبهٔ معیارها}
+\begin{questionprompt}
+    چگالی \(p(x)\) و برچسب واقعی \(y\) برای پنج نمونهٔ اعتبارسنجی به صورت زیرند.
+    \[
+        \begin{array}{c|ccccc}
+            \text{Sample} & 1 & 2 & 3 & 4 & 5\\ \hline
+            p(x) & 0.10 & 0.04 & 0.20 & 0.001 & 0.02\\
+            y    & 0    & 1    & 0    & 1     & 0
+        \end{array}
+    \]
+    با آستانهٔ \(\epsilon=0.03\) و قاعدهٔ \(\hat{y}=1\) برای \(p(x)<\epsilon\)، ماتریس درهم‌ریختگی، دقت \lr{(Precision)}، بازخوانی \lr{(Recall)} و امتیاز \(F_1\) را محاسبه کنید.
+\end{questionprompt}
+\textbf{۱. پیش‌بینی‌ها و ماتریس درهم‌ریختگی.}
+فقط چگالی نمونه‌های \(4\) و \(5\) از \(0.03\) کمتر است. با مقایسهٔ هر پیش‌بینی با برچسب واقعی، داریم
+\[
+    \begin{array}{c|ccccc}
+        \text{Sample} & 1 & 2 & 3 & 4 & 5\\ \hline
+        y             & 0 & 1 & 0 & 1 & 0\\
+        \hat{y}       & 0 & 0 & 0 & 1 & 1\\
+        \text{Result} & \mathrm{TN} & \mathrm{FN} & \mathrm{TN} &
+                         \mathrm{TP} & \mathrm{FP}
+    \end{array}
+\]
+در ماتریس زیر، سطرها پیش‌بینی مدل و ستون‌ها برچسب واقعی را نشان می‌دهند.
+\[
+    \begin{array}{c|cc}
+        & y=1 & y=0\\ \hline
+        \hat{y}=1 & \mathrm{TP}=1 & \mathrm{FP}=1\\
+        \hat{y}=0 & \mathrm{FN}=1 & \mathrm{TN}=2
+    \end{array}
+\]
+
+\noindent\textbf{۲. دقت و بازخوانی.}
+از دو نمونهٔ علامت‌خورده، یک نمونه واقعاً حمله است. همچنین از دو حملهٔ واقعی، یک مورد شناسایی شده است.
+\begin{align*}
+    \mathrm{Precision}
+    &=\frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}}
+      =\frac{1}{1+1}=\frac12=50\%,\\
+    \mathrm{Recall}
+    &=\frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}
+      =\frac{1}{1+1}=\frac12=50\%.
+\end{align*}
+
+\noindent\textbf{۳. امتیاز \(F_1\).}
+با جای‌گذاری دقت و بازخوانی در میانگین هارمونیک، نتیجه می‌گیریم
+\[
+    F_1=2\,\frac{\mathrm{Precision}\cdot\mathrm{Recall}}
+                     {\mathrm{Precision}+\mathrm{Recall}}
+       =2\,\frac{\frac12\cdot\frac12}{\frac12+\frac12}
+       =\frac12=50\%.
+\]
+
+\end{document}

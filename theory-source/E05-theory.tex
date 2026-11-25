@@ -1,0 +1,256 @@
+% !TeX program = xelatex
+% Adapted from the ML-HW1-T.tex handout and its Template.sty.
+% Place UI Logo.png and the template TTFs beside this file for the original masthead.
+\documentclass{article}
+\usepackage{graphicx,setspace,xcolor}
+\usepackage{amsmath,amssymb}
+\usepackage[extrafootnotefeatures]{xepersian}
+
+% Legacy bidi definitions may retain this marker on newer LaTeX kernels.
+% For this untagged handout it can be empty if the kernel does not define it.
+\providecommand{\UseMathForPositioningText}{}
+
+\setlength{\textwidth}{6.25in}
+% Center the text block, accounting for TeX's one-inch origin.
+\setlength{\oddsidemargin}{\dimexpr(\paperwidth-\textwidth)/2-1in-\hoffset\relax}
+\setlength{\evensidemargin}{\oddsidemargin}
+\setlength{\topmargin}{-.4in}
+\setlength{\textheight}{8.5in}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{.05in}
+\setlength{\skip\footins}{.25in}
+\linespread{1.5}
+\numberwithin{equation}{section}
+\numberwithin{table}{section}
+
+\IfFileExists{XB Yas.ttf}{%
+    \settextfont[Scale=1.0,BoldFont=*Bd,ItalicFont=*It,BoldItalicFont=*BdIt,Extension=.ttf]{XB Yas}%
+}{%
+    \IfFontExistsTF{XB Yas}{\settextfont{XB Yas}}{%
+    \IfFontExistsTF{Amiri}{\settextfont{Amiri}}{%
+    \IfFontExistsTF{Tahoma}{\settextfont{Tahoma}}{%
+    \IfFontExistsTF{FreeSerif}{\settextfont{FreeSerif}}{\settextfont{DejaVu Sans}}}}}}
+\IfFileExists{IranNastaliq.ttf}{%
+    \defpersianfont\nastaliq{IranNastaliq.ttf}%
+}{%
+    \IfFontExistsTF{IranNastaliq}{\defpersianfont\nastaliq{IranNastaliq}}{\let\nastaliq\relax}%
+}
+
+\newcommand{\universitylogo}{%
+    \IfFileExists{UI Logo.png}{\includegraphics[width=.67\linewidth]{UI Logo.png}}{}%
+}
+
+% Arguments follow the handout command in Template.sty.
+\newcommand{\handout}[5]{%
+    \renewcommand{\thepage}{\arabic{page}}%
+    \noindent\makebox[\textwidth][c]{%
+        \parbox[c]{.17\textwidth}{\raggedleft\universitylogo}%
+        \parbox[c]{.66\textwidth}{%
+            \centering\nastaliq\huge دانشکدۀ ریاضی و آمار دانشگاه اصفهان\par
+        }%
+        \parbox[c]{.17\textwidth}{\raggedright\universitylogo}%
+    }\par
+    \medskip
+    \noindent\framebox[\textwidth]{%
+        \begin{minipage}{.9\textwidth}
+            \onehalfspacing
+            \vspace{.15cm}
+            #5\hfill#2\par
+            {\centering\Large #1\par}
+            \smallskip
+            #3\hfill#4\par
+            \vspace{.15cm}
+        \end{minipage}%
+    }\par
+}
+
+\allowdisplaybreaks[2]
+
+\newenvironment{questionprompt}{%
+    \begin{quote}\noindent\textbf{صورت سؤال.}\enspace\ignorespaces
+}{%
+    \end{quote}\noindent\textbf{پاسخ.}\enspace\ignorespacesafterend
+}
+
+\begin{document}
+\handout
+    {تمرین پنجم نظری: خوشه‌بندی (\lr{Clustering})}
+    {نیم‌سال اول ۱۴۰۴–۱۴۰۵}
+    {مدرس: دکتر محسن علمبردار}
+    {شماره اسلاید: ۷}
+    {یادگیری ماشین}
+
+\vspace{.5cm}
+\textbf{نام دانشجو: حسنا سلطان الکتابی}\par
+
+\section{مکانیسم و محدودیت‌های الگوریتم‌های خوشه‌بندی}
+
+\noindent\textbf{سوال}
+یک تکرار از الگوریتم \lr{K-Means} را انجام دهید، دلیل استفاده از میانگین را اثبات کنید و محدودیت‌های هندسی آن را بررسی کنید.
+
+\subsection*{الف) اجرای دستی یک تکرار \lr{K-Means}}
+\begin{questionprompt}
+    داده‌های تک‌بعدی \(X=\{2,4,10,12,3,20,30,11,25\}\) و \(K=2\) را در نظر بگیرید. مراکز اولیه \(\mu_1=3\) و \(\mu_2=4\) هستند.
+    \begin{enumerate}
+        \item اعضای \(C_1\) و \(C_2\) را پس از انتساب به نزدیک‌ترین مرکز مشخص کنید.
+        \item مراکز جدید \(\mu_1'\) و \(\mu_2'\) را به دست آورید.
+        \item هزینهٔ \(J=\sum_{k=1}^{K}\sum_{x\in C_k}\lVert x-\mu_k\rVert^2\) را پس از انتساب با مراکز اولیه و پس از به‌روزرسانی مراکز محاسبه کنید. آیا هزینه کاهش می‌یابد؟
+    \end{enumerate}
+\end{questionprompt}
+\textbf{۱. انتساب نقاط به مراکز اولیه.}
+نقطهٔ میانی دو مرکز \( (3+4)/2=3.5\) است. نقاط کوچک‌تر به مرکز \(3\) و نقاط بزرگ‌تر به مرکز \(4\) نزدیک‌ترند. هیچ داده‌ای روی مرز قرار ندارد، پس
+\[
+    C_1=\{2,3\},\qquad C_2=\{4,10,11,12,20,25,30\}.
+\]
+
+\noindent\textbf{۲. به‌روزرسانی مراکز.}
+مرکز هر خوشه را با میانگین اعضای آن جایگزین می‌کنیم.
+\begin{align*}
+    \mu_1'&=\frac{2+3}{2}=2.5,\\
+    \mu_2'&=\frac{4+10+11+12+20+25+30}{7}=\frac{112}{7}=16.
+\end{align*}
+
+\noindent\textbf{۳. مقایسهٔ هزینه‌ها.}
+تابع هزینه، مجموع مربع فاصلهٔ هر نقطه تا مرکز خوشهٔ آن است.
+\[
+    J=\sum_{k=1}^{K}\sum_{x\in C_k}\lVert x-\mu_k\rVert^2,
+    \qquad K=2.
+\]
+هزینه پس از انتساب اولیه و پیش از تغییر مراکز برابر است با
+\begin{align*}
+    J_{\mathrm{old}}
+    &=\bigl[(2-3)^2+(3-3)^2\bigr]\\
+    &\quad+\bigl[(4-4)^2+(10-4)^2+(11-4)^2+(12-4)^2\\
+    &\hspace{4em}+(20-4)^2+(25-4)^2+(30-4)^2\bigr]\\
+    &=1+(0+36+49+64+256+441+676)\\
+    &=1523.
+\end{align*}
+در گام به‌روزرسانی، عضویت نقاط را ثابت نگه می‌داریم و فقط مراکز را عوض می‌کنیم.
+\begin{align*}
+    J_{\mathrm{updated}}
+    &=\bigl[(2-2.5)^2+(3-2.5)^2\bigr]\\
+    &\quad+\bigl[(4-16)^2+(10-16)^2+(11-16)^2+(12-16)^2\\
+    &\hspace{4em}+(20-16)^2+(25-16)^2+(30-16)^2\bigr]\\
+    &=0.5+(144+36+25+16+16+81+196)\\
+    &=514.5.
+\end{align*}
+بنابراین هزینه طی این تکرار از \(1523\) به \(514.5\) کاهش می‌یابد. اگر گام انتسابِ تکرار بعدی را نیز با همین مراکز انجام دهیم، مرز جدید \((2.5+16)/2=9.25\) است. تنها نقطهٔ \(4\) از \(C_2\) به \(C_1\) منتقل می‌شود و خوشه‌های جدید عبارت‌اند از
+\[
+    C_1'=\{2,3,4\},\qquad C_2'=\{10,11,12,20,25,30\}.
+\]
+با عضویت‌های جدید و همان مراکز \(\mu_1'\) و \(\mu_2'\)، سهم نقطهٔ \(4\) از هزینه از \((4-16)^2\) به \((4-2.5)^2\) می‌رسد. در نتیجه
+\[
+    J_{\mathrm{reassigned}}=514.5-(4-16)^2+(4-2.5)^2=372.75.
+\]
+\\
+\subsection*{ب) اثبات بهینه بودن میانگین}
+\begin{questionprompt}
+    با مشتق‌گیری از تابع هزینهٔ یک خوشه،
+    \(J_k(\mu_k)=\sum_{x^{(i)}\in C_k}\lVert x^{(i)}-\mu_k\rVert^2\)،
+    نشان دهید مرکز بهینهٔ خوشه برابر میانگین نقاط آن است.
+\end{questionprompt}
+عضویت نقاط را ثابت در نظر می‌گیریم. تعداد اعضای خوشهٔ \(C_k\) برابر \(n=|C_k|>0\) است. برای داده‌های برداری داریم
+\begin{align*}
+    \frac{\partial J_k}{\partial\mu_k}
+    &=\sum_{x^{(i)}\in C_k}2(x^{(i)}-\mu_k)(-1)\\
+    &=2\sum_{x^{(i)}\in C_k}\mu_k-x^{(i)}.
+\end{align*}
+با صفر قرار دادن گرادیان،
+\begin{align*}
+    \frac{\partial J_k}{\partial\mu_k}
+    &=0\\
+    2\sum_{x^{(i)}\in C_k}\mu_k-x^{(i)}
+    &=0\\
+    \sum_{x^{(i)}\in C_k}\mu_k-x^{(i)}
+    &=0\\
+    \sum_{x^{(i)}\in C_k}\mu_k
+    &=\sum_{x^{(i)}\in C_k}x^{(i)}\\
+    n\mu_k
+    &=\sum_{x^{(i)}\in C_k}x^{(i)}\\
+    \mu_k
+    &=\frac{1}{n}\sum_{x^{(i)}\in C_k}x^{(i)}.
+\end{align*}
+هسین \(2nI\) معین مثبت است، پس این نقطه کمینهٔ یکتای هزینه برای اعضای ثابت خوشه است. در حالت تک‌بعدی، همین نتیجه از مشتق دوم \(2n>0\) به دست می‌آید.
+
+\subsection*{ج) کمینهٔ محلی و شکل مرز تصمیم}
+\begin{questionprompt}
+    \begin{enumerate}
+        \item سه گروه مجزای دوبعدی رسم کنید و نشان دهید چگونه مقداردهی اولیهٔ بد می‌تواند دو گروه را ادغام کند و گروه سوم را به دو قسمت تقسیم کند. توضیح دهید چرا مراکز دیگر جابه‌جا نمی‌شوند.
+        \item برای داده‌های دارای دو حلقهٔ متحدالمرکز، شرط انتساب یک نقطه به یک خوشه را بنویسید. با بسط رابطهٔ هم‌فاصله بودن از دو مرکز نشان دهید مرز تصمیم خطی است و توضیح دهید چرا این مرز نمی‌تواند حلقهٔ بیرونی را از گروه مرکزی جدا کند.
+    \end{enumerate}
+\end{questionprompt}
+\textbf{۱. نمونه‌ای از گیر افتادن در کمینهٔ محلی.}
+در شکل زیر، داده‌ها سه گروه مجزا تشکیل می‌دهند. نقطه‌ها نمونه‌ها و مثلث‌های پُر مراکز خوشه‌ها را نشان می‌دهند.
+
+\begin{center}
+\begin{LTR}
+    \setlength{\unitlength}{1pt}
+    \begin{picture}(300,130)(0,-17)
+        \put(0,0){\framebox(130,108){}}
+        \put(19.5,24){\circle*{3}}
+        \put(32.5,24){\circle*{3}}
+        \put(97.5,24){\circle*{3}}
+        \put(110.5,24){\circle*{3}}
+        \put(45.5,80){\circle*{3}}
+        \put(58.5,80){\circle*{3}}
+        \put(71.5,80){\circle*{3}}
+        \put(84.5,80){\circle*{3}}
+        \put(32.5,24){\makebox(0,0){\(\scriptstyle\textcolor{blue}{\blacktriangle}\)}}
+        \put(45.5,80){\makebox(0,0){\(\scriptstyle\textcolor{blue}{\blacktriangle}\)}}
+        \put(84.5,80){\makebox(0,0){\(\scriptstyle\textcolor{blue}{\blacktriangle}\)}}
+        \put(65,-12){\makebox(0,0){\(1\)}}
+        \put(170,0){\framebox(130,108){}}
+        \put(189.5,24){\circle*{3}}
+        \put(202.5,24){\circle*{3}}
+        \put(267.5,24){\circle*{3}}
+        \put(280.5,24){\circle*{3}}
+        \put(215.5,80){\circle*{3}}
+        \put(228.5,80){\circle*{3}}
+        \put(241.5,80){\circle*{3}}
+        \put(254.5,80){\circle*{3}}
+        \put(235,24){\makebox(0,0){\(\scriptstyle\textcolor{blue}{\blacktriangle}\)}}
+        \put(222,80){\makebox(0,0){\(\scriptstyle\textcolor{blue}{\blacktriangle}\)}}
+        \put(248,80){\makebox(0,0){\(\scriptstyle\textcolor{blue}{\blacktriangle}\)}}
+        \put(235,-12){\makebox(0,0){\(2\)}}
+        \put(137,53){\vector(1,0){24}}
+    \end{picture}
+\end{LTR}
+\end{center}
+
+در شکل (۱)، دو مرکز در گروه بالایی و یک مرکز در یکی از گروه‌های پایینی قرار دارند. در گام انتساب، نقاط هر دو گروه پایینی به همان مرکز پایینی نزدیک‌ترند و نقاط گروه بالایی بین دو مرکز آن گروه تقسیم می‌شوند. پس از به‌روزرسانی، شکل (۲) این افراز را نشان می‌دهد: دو گروه پایینی در یک خوشه ادغام شده‌اند و گروه بالایی به دو خوشه تقسیم شده است.
+
+در گام بعد، هر نقطه همچنان به مرکز خوشهٔ خودش نزدیک‌تر است. چون اعضای خوشه‌ها ثابت می‌مانند، میانگین‌ها نیز عوض نمی‌شوند و الگوریتم در همین افراز متوقف می‌شود.
+
+برای مثال، اگر مختصات نقاطِ دو گروه پایینی \((G_1,G_2)\) و گروه بالایی \((G_3)\) را به صورت زیر در نظر بگیریم، می‌توانیم هزینهٔ دو افراز را مقایسه کنیم.
+\begin{align*}
+    G_1&=\{(-3.5,0),(-2.5,0)\},\\
+    G_2&=\{(2.5,0),(3.5,0)\},\\
+    G_3&=\{(-1.5,7),(-0.5,7),(0.5,7),(1.5,7)\}.
+\end{align*}
+در افراز شکل (۲)، مرکز مشترک دو گروه پایینی \((0,0)\) است. دو نقطهٔ نزدیک‌تر در فاصلهٔ \(2.5\) و دو نقطهٔ دورتر در فاصلهٔ \(3.5\) از این مرکز قرار دارند. مراکز دو خوشهٔ بالایی \((-1,7)\) و \((1,7)\) هستند و فاصلهٔ هر چهار نقطهٔ بالایی تا مرکز خوشهٔ خودش \(0.5\) است.
+
+اگر به هر گروه یک مرکز بدهیم، مراکز دو گروه پایینی \((-3,0)\) و \((3,0)\) و مرکز گروه بالایی \((0,7)\) خواهد بود. در این حالت، فاصلهٔ هر چهار نقطهٔ پایینی تا مرکز گروه خودش \(0.5\) است. در گروه بالایی، دو نقطهٔ میانی در فاصلهٔ \(0.5\) و دو نقطهٔ کناری در فاصلهٔ \(1.5\) قرار دارند. با جمع مربع این فاصله‌ها، هزینه‌ها به صورت زیر به دست می‌آیند.
+\begin{align*}
+    J_{\mathrm{local}}&=2(3.5^2+2.5^2)+4(0.5^2)=38,\\
+    J_{\mathrm{three\ groups}}&=4(0.5^2)+2(1.5^2+0.5^2)=6.
+\end{align*}
+هزینهٔ کمترِ افراز سه‌گروهی نشان می‌دهد که افراز شکل (۲) بهینهٔ سراسری نیست. چون الگوریتم در هر گام فقط نزدیک‌ترین مرکز فعلی یا میانگین اعضای فعلی را محاسبه می‌کند، جابه‌جایی هماهنگ مراکز برای رسیدن به افراز بهتر اتفاق نمی‌افتد.
+
+\noindent\textbf{۲. مرز خطی و جداسازی حلقه‌ها.}
+اگر \(k(x)\) شمارهٔ خوشهٔ انتخاب‌شده برای \(x\) باشد، قاعدهٔ انتساب به نزدیک‌ترین مرکز به صورت زیر است. در صورت برابری فاصله‌ها می‌توان از یک قاعدهٔ ثابت برای شکستن تساوی استفاده کرد.
+\[
+    k(x)\in\operatorname*{arg\,min}_{1\leq \ell\leq K}
+    \lVert x-\mu_\ell\rVert^2.
+\]
+برای دو مرکز متمایز \(\mu_i\) و \(\mu_j\)، نقاط مرزی شرط هم‌فاصله بودن را دارند.
+\begin{align*}
+    \lVert x-\mu_i\rVert^2&=\lVert x-\mu_j\rVert^2,\\
+    (x-\mu_i)^\top(x-\mu_i)&=(x-\mu_j)^\top(x-\mu_j),\\
+    x^\top x-2\mu_i^\top x+\lVert\mu_i\rVert^2
+    &=x^\top x-2\mu_j^\top x+\lVert\mu_j\rVert^2,\\
+    2(\mu_j-\mu_i)^\top x
+      +\lVert\mu_i\rVert^2-\lVert\mu_j\rVert^2&=0.
+\end{align*}
+پس مکان هندسیِ نقاط هم‌فاصله در دو بُعد یک خط و در بُعدهای بالاتر یک ابرصفحه است. برای \(K=2\) هر خوشه در یک نیم‌فضا قرار می‌گیرد. اگر همهٔ حلقهٔ بیرونی در یک نیم‌فضا باشند، پوش محدب آن نیز در همان نیم‌فضاست و حلقهٔ داخلی یا هسته را در بر می‌گیرد. بنابراین یک مرز خطی نمی‌تواند دو گروهِ تودرتو را به‌درستی جدا کند.
+
+\end{document}
